@@ -15,7 +15,7 @@ library(mosaicData)
 
 ### Exercise 1
 
-```{r load-data}
+```{r load-staff}
 staff <- read_csv("data/instructional-staff.csv")
 ```
 
@@ -47,10 +47,97 @@ To make it so that the graph highlights that the proportion of part-time faculty
 
 ### Exercise 2
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+```{r load-fisheries}
+fisheries <- read_csv("data/fisheries.csv")
+fisheries
+```
+
+I think to improve the initial visualization of this data, we should first use continents instead of countries to track fish production around the globe. There is simply too many categorical variables (i.e., countries) to put on the x axis. The data should be condensed. I do not see the sense in including all 216 countries as this makes it appear in the initial visualization that the x axis is a continuous variable when it is not!
+
+Therefore I am going to create a new variable for continent
+
+```{r countrycode}
+library(countrycode)
+```
+This library contains countrycode, a function that is able to assign the correct continent to countries. This will assist me in creating this variable
+
+
+```{r continent-variable}
+fisheries <- fisheries %>% mutate(continent = countrycode(sourcevar = fisheries$country,
+                            origin = "country.name",
+                            destination = "continent"))
+fisheries
+```
+This method has proven successful. Now because I also want to sum the total fish production for each continent and not each country, I will create a new variables that shows the total for each continent for capture, aquaculture, and continent.
+
+```{r new-variables}
+fisheries <- fisheries %>% group_by(continent) %>% 
+  mutate(capture_continent = sum(capture))
+fisheries <- fisheries %>% group_by(continent) %>% 
+  mutate(aquaculture_continent = sum(aquaculture))
+fisheries <- fisheries %>% group_by(continent) %>% 
+  mutate(total_continent = sum(total))
+```
+
+Now I will create a separate data frame that looks at only the continents. 
+
+```{r fisheries_continent}
+fisheries<- as.data.frame(fisheries)
+
+Africa<-fisheries %>% filter(continent=="Africa")
+Americas<-fisheries %>% filter(continent=="Americas")
+Asia<-fisheries %>% filter(continent=="Asia")
+Europe<-fisheries %>% filter(continent == "Europe")
+Oceania<-fisheries %>% filter(continent == "Oceania")
+
+fisheries_continent<-data.frame(continent = c("Africa",
+                         "Americas",
+                         "Asia",
+                         "Europe",
+                         "Oceania"),
+           Capture = c(Africa[1,6],
+                       Americas[1,6],
+                       Asia[1,6],
+                       Europe[1,6],
+                       Oceania[1,6]),
+           Aquaculture = c(Africa[1,7],
+                       Americas[1,7],
+                       Asia[1,7],
+                       Europe[1,7],
+                       Oceania[1,7]),
+           Total = c(Africa[1,8],
+                       Americas[1,8],
+                       Asia[1,8],
+                       Europe[1,8],
+                       Oceania[1,8])
+)
+```
+
+
+Alright now I will construct a basic bar graph here. However, I know these kinds of graphs are boring, but considering the goal of this graph is compare fish production in different areas of the world this seems to be the best method. I will make three for capture, aquaculture, and total.
+
+```{r fisheries-histogram}
+fisheries_continent %>% ggplot(aes(x = continent, y = Total)) +
+  geom_bar(stat = "identity", fill = "blue", alpha =0.5) +
+  labs(title = "Total Fish Production",
+       x = "Continent",
+       y = "Fish (Tons)")
+                            
+fisheries_continent %>% ggplot(aes(x = continent, y = Capture)) +
+  geom_bar(stat = "identity", fill = "blue", alpha =0.5) + 
+   labs(title = "Total Fish Captured",
+       x = "Continent",
+       y = "Fish (Tons)")
+
+fisheries_continent %>% ggplot(aes(x = continent, y = Aquaculture)) +
+  geom_bar(stat = "identity", fill = "blue", alpha =0.5) +
+   labs(title = "Total Fish Farmed",
+       x = "Continent",
+       y = "Fish (Tons)")
+
+```
+
+The only other thing I want to add to these plots is changing the display of the y-axis. I don't like the e+ symboling, however I'm unsure how to change this.
 
 ### Exercise 3
 
