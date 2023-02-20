@@ -243,8 +243,121 @@ fisheries_continent %>% ggplot(aes(x = continent, y = Aquaculture)) +
 
 ![](lab-06_files/figure-gfm/fisheries-histogram-3.png)<!-- -->
 
+The only other thing I want to add to these plots is changing the
+display of the y-axis. I don’t like the e+ symboling, however I’m unsure
+how to change this.
+
 ### Exercise 3
 
-…
+``` r
+data(Whickham)
+```
 
-Add exercise headings as needed.
+1.  This is observational data as there is no independent variable being
+    manipulated prior to measuring a dependent variables. They are just
+    observing survey responses in data.
+
+2.  There are 1314 observations in the dataset. Each observation is a
+    woman in Whickham.
+
+3.  There are 3 variables. 1) Outcome survival status 2) Smoking
+    status 3) Age
+
+4.  I believe there should a negative relationship between smoking
+    status and health outcome such that individuals who marked
+    themselves are smoking are more likely to have died.
+
+5.  
+
+``` r
+Whickham %>% ggplot(aes(x=smoker, fill = outcome))+
+  geom_histogram(stat = "count")
+```
+
+    ## Warning in geom_histogram(stat = "count"): Ignoring unknown parameters:
+    ## `binwidth`, `bins`, and `pad`
+
+![](lab-06_files/figure-gfm/Whickham-Plot-1.png)<!-- -->
+
+6.  
+
+``` r
+Whickham %>%
+  count(smoker, outcome)
+```
+
+    ##   smoker outcome   n
+    ## 1     No   Alive 502
+    ## 2     No    Dead 230
+    ## 3    Yes   Alive 443
+    ## 4    Yes    Dead 139
+
+``` r
+Yes = 443 + 139
+No = 502 + 230
+
+YesDead = 139
+NoDead = 230
+
+Proportion_of_Dead_Smokers <- YesDead/Yes
+Proportion_of_Dead_NonSmokers <- NoDead/No
+
+SmokerProps<-data.frame(Proportion_of_Dead_Smokers, Proportion_of_Dead_NonSmokers)
+SmokerProps
+```
+
+    ##   Proportion_of_Dead_Smokers Proportion_of_Dead_NonSmokers
+    ## 1                  0.2388316                     0.3142077
+
+Interesting there is a greater proportion of people who are dead and
+didn’t smoke versus people are dead and did smoke. Not at all my
+expectations.
+
+7.  
+
+``` r
+Whickham <- Whickham %>% mutate(age_cat = case_when(
+  age <= 44 ~ "18-44",
+  age > 44 & age <= 64 ~ "45-64",
+  age > 64 ~ "65+"
+))
+
+Whickham %>% ggplot(aes(x=smoker, fill = outcome))+
+  facet_wrap(~age_cat)+
+  geom_histogram(stat = "count")
+```
+
+    ## Warning in geom_histogram(stat = "count"): Ignoring unknown parameters:
+    ## `binwidth`, `bins`, and `pad`
+
+![](lab-06_files/figure-gfm/age_cat-1.png)<!-- -->
+
+``` r
+Whickham %>%
+  count(smoker, age_cat, outcome)
+```
+
+    ##    smoker age_cat outcome   n
+    ## 1      No   18-44   Alive 327
+    ## 2      No   18-44    Dead  12
+    ## 3      No   45-64   Alive 147
+    ## 4      No   45-64    Dead  53
+    ## 5      No     65+   Alive  28
+    ## 6      No     65+    Dead 165
+    ## 7     Yes   18-44   Alive 270
+    ## 8     Yes   18-44    Dead  15
+    ## 9     Yes   45-64   Alive 167
+    ## 10    Yes   45-64    Dead  80
+    ## 11    Yes     65+   Alive   6
+    ## 12    Yes     65+    Dead  44
+
+It appears here that my original prediction holds for ages 45-64. There
+are more people who check yes to smoking and are dead relative to the
+total than individuals who checked no to smoking and are dead relative
+to the total. I feel the only reasonable explanation here is this, most
+people begin smoking early in their life (18-44) when they are young and
+healthy, but cancer then begins to develop in middle age (45-64) where
+individuals then begin to suffer the fatal effects of smoking.
+Individuals who are left alive then proceed to their later years in life
+(65+). This is further seen by the fact that there are less people
+smoking at ages 65+, because most have already died.
